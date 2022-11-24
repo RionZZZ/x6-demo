@@ -21,9 +21,9 @@ export const initialData = {
     {
       id: "2",
       label: "区分条件",
-      width: 100,
+      width: 80,
       height: 80,
-      shape: "ellipse"
+      shape: "circle"
       // description: "这是条件node"
     },
     {

@@ -127,6 +127,7 @@ export default Vue.extend({
           body: {
             fill: "#5f95ff",
             stroke: "transparent",
+            strokeWidth: 4,
             rx: 5,
             ry: 5
           },
@@ -180,8 +181,12 @@ export default Vue.extend({
       };
     },
     addEvents() {
-      // 鼠标移入节点显示
-      this.g.on("node:mouseenter", ({ e, node, view }) => {
+      // 鼠标移入node
+      this.g.on("node:mouseenter", ({ node }) => {
+        this.g.getNodes().forEach((node) => {
+          node.removeTool("button-remove");
+          node.attr("body/stroke", "transparent");
+        });
         node.addTools({
           name: "button-remove",
           args: {
@@ -190,10 +195,40 @@ export default Vue.extend({
             offset: { x: -5, y: 5 }
           }
         });
+        node.attr("body/stroke", "#9dd1aa");
       });
-      // 鼠标移出节点显示
+      // 鼠标移出node
       this.g.on("node:mouseleave", ({ node }) => {
         node.removeTool("button-remove");
+        node.attr("body/stroke", "transparent");
+      });
+      // 鼠标点击空白区域消除删除按钮
+      // this.g.on("blank:click", () => {
+      //   this.g.getNodes().forEach((node) => {
+      //     node.removeTool("button-remove");
+      //   });
+      // });
+      // 鼠标移入edge
+      this.g.on("edge:mouseenter", ({ edge }) => {
+        edge.attr("line/stroke", "#9dd1aa");
+        edge.prop("labels/0", {
+          attrs: {
+            body: {
+              stroke: "#9dd1aa"
+            }
+          }
+        });
+      });
+      // 鼠标移出edge
+      this.g.on("edge:mouseleave", ({ edge }) => {
+        edge.attr("line/stroke", "#a2b1c3");
+        edge.prop("labels/0", {
+          attrs: {
+            body: {
+              stroke: "#a2b1c3"
+            }
+          }
+        });
       });
       // 双击节点修改label
       this.g.on("node:dblclick", ({ node, e }) => {
