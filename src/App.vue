@@ -1,6 +1,18 @@
 <template>
   <div class="container">
     <div id="x6" ref="x6"></div>
+    <el-dropdown ref="menuDown" trigger="click" placement="bottom">
+      <div></div>
+      <el-dropdown-menu class="x6-down-menu" slot="dropdown">
+        <el-dropdown-item
+          v-for="(item, index) in dropdown"
+          :key="index"
+          :icon="item.icon"
+          :command="item.command"
+          >{{ item.label }}</el-dropdown-item
+        >
+      </el-dropdown-menu>
+    </el-dropdown>
   </div>
 </template>
 
@@ -9,7 +21,7 @@ import Vue from "vue";
 import { Graph, Edge, Node, Cell } from "@antv/x6";
 import { CellEditor } from "@antv/x6/es/registry/tool/editor";
 import Layout, { DagreLayout } from "@antv/layout";
-import { initialData } from "./constant";
+import { initialData, downMenu, DownMenu } from "./constant";
 
 export default Vue.extend({
   name: "App",
@@ -17,7 +29,8 @@ export default Vue.extend({
     return {
       g: {} as Graph,
       nodes: [] as Node.Metadata[],
-      edges: [] as Edge.Metadata[]
+      edges: [] as Edge.Metadata[],
+      dropdown: [] as DownMenu[]
     };
   },
   mounted() {
@@ -43,8 +56,8 @@ export default Vue.extend({
         // 画布拖拽
         panning: {
           enabled: true,
-          eventTypes: ["rightMouseDown"]
-          // modifiers: "shift"
+          eventTypes: ["leftMouseDown"],
+          modifiers: "ctrl"
         },
         // 滚轮缩放
         mousewheel: true,
@@ -232,13 +245,16 @@ export default Vue.extend({
       });
       // 双击节点修改label
       this.g.on("node:dblclick", ({ node, e }) => {
-        node.removeTool("node-editor");
         node.addTools({
           name: "node-editor",
           args: {
             event: e,
             setText: (args: any) => {
-              CellEditor.NodeEditor.getDefaults().setText(args);
+              (
+                CellEditor.NodeEditor.getDefaults() as {
+                  setText: (args: any) => void;
+                }
+              ).setText(args);
             }
           }
         });
@@ -295,6 +311,34 @@ export default Vue.extend({
           }
         });
       });
+      // 鼠标右键点击画布
+      this.g.on("blank:contextmenu", ({ e, x, y }) => {
+        this.showSvgMenu(x, y);
+      });
+    },
+    showSvgMenu(x: number, y: number) {
+      this.dropdown = downMenu.svg;
+      this.showMenu(x, y);
+    },
+    // showNodeMenu(node) {
+    //   this.currentNode = node;
+    //   this.dropdown = downMenu.node;
+    //   this.showMenu();
+    // },
+    // showEdgeMenu(edge) {
+    //   this.currentEdge = edge;
+    //   this.dropdown = downMenu.edge;
+    //   this.showMenu();
+    // },
+    showMenu(x: number, y: number) {
+      console.log(x, y);
+      (this.$refs.menuDown as any).show();
+      const menu = (this.$refs.menuDown as any).popperElm;
+      setTimeout(() => {
+        menu.setAttribute("x-placement", "bottom-start");
+        menu.style.left = x + 20 + "px";
+        menu.style.top = y + 36 + "px";
+      }, 0);
     }
   },
   beforeDestroy() {
@@ -303,7 +347,7 @@ export default Vue.extend({
 });
 </script>
 
-<style>
+<style lang="scss">
 body {
   margin: 0;
 }
@@ -313,12 +357,18 @@ body {
   display: flex;
   padding: 20px 36px;
   box-sizing: border-box;
+  #x6 {
+    flex: 1;
+    .select-chosen {
+      border: 2px dashed #696c14;
+      background-color: #feb663;
+    }
+  }
 }
-#x6 {
-  flex: 1;
-}
-.select-chosen {
-  border: 2px dashed #696c14;
-  background-color: #feb663;
+.x6-down-menu {
+  transform: none !important;
+  .popper__arrow {
+    left: 20px !important;
+  }
 }
 </style>

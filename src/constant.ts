@@ -5,18 +5,18 @@ export const initialData = {
       label: "顶级",
       width: 60,
       height: 32,
-      shape: "rect"
+      shape: "rect",
       // class: "type-top",
-      // description: "这是顶级node"
+      description: "这是顶级node"
     },
     {
       id: "1",
       label: "次级",
       width: 60,
       height: 32,
-      shape: "rect"
+      shape: "rect",
       // class: "type-sub-top",
-      // description: "这是次顶级node"
+      description: "这是次顶级node"
     },
     {
       id: "2",
@@ -61,54 +61,61 @@ export const initialData = {
   ]
 };
 
-export const downMenu = {
-  node: [
-    {
-      icon: "el-icon-warning-outline",
-      label: "详情",
-      command: "nodeDetail"
-    },
-    {
-      icon: "el-icon-delete",
-      label: "删除",
-      command: "nodeDelete"
-    },
-    {
-      icon: "el-icon-connection",
-      label: "添加edge",
-      command: "nodeAddEdge"
-    },
-    {
-      icon: "el-icon-link",
-      label: "添加子node",
-      command: "nodeAddNode"
-    }
-  ],
-  edge: [
-    {
-      icon: "el-icon-warning-outline",
-      label: "详情",
-      command: "edgeDetail"
-    },
-    {
-      icon: "el-icon-delete",
-      label: "删除",
-      command: "edgeDelete"
-    }
-  ],
-  svg: [
-    {
-      icon: "el-icon-plus",
-      label: "添加node",
-      command: "addNode"
-    },
-    {
-      icon: "el-icon-plus",
-      label: "添加流程",
-      command: "addFlow"
-    }
-  ]
-};
+export interface DownMenu {
+  icon: string;
+  label: string;
+  command: string;
+}
+
+export const downMenu: { node: DownMenu[]; edge: DownMenu[]; svg: DownMenu[] } =
+  {
+    node: [
+      {
+        icon: "el-icon-warning-outline",
+        label: "详情",
+        command: "nodeDetail"
+      },
+      {
+        icon: "el-icon-delete",
+        label: "删除",
+        command: "nodeDelete"
+      },
+      {
+        icon: "el-icon-connection",
+        label: "添加edge",
+        command: "nodeAddEdge"
+      },
+      {
+        icon: "el-icon-link",
+        label: "添加子node",
+        command: "nodeAddNode"
+      }
+    ],
+    edge: [
+      {
+        icon: "el-icon-warning-outline",
+        label: "详情",
+        command: "edgeDetail"
+      },
+      {
+        icon: "el-icon-delete",
+        label: "删除",
+        command: "edgeDelete"
+      }
+    ],
+    svg: [
+      {
+        icon: "el-icon-plus",
+        label: "添加node",
+        command: "addNode"
+      },
+      {
+        icon: "el-icon-plus",
+        label: "添加流程",
+        command: "addFlow"
+      }
+    ]
+  };
 
 export const shapes = ["rect", "ellipse", "circle", "diamond"];
 
