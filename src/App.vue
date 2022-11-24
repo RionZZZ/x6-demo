@@ -6,7 +6,8 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { Graph, Edge, Node } from "@antv/x6";
+import { Graph, Edge, Node, Cell } from "@antv/x6";
+import { CellEditor } from "@antv/x6/es/registry/tool/editor";
 import Layout, { DagreLayout } from "@antv/layout";
 import { initialData } from "./constant";
 
@@ -32,7 +33,7 @@ export default Vue.extend({
         autoResize: true,
         // 背景色
         background: {
-          color: "#d3d3d3"
+          color: "#dfdfdf"
         },
         // 网格
         grid: {
@@ -107,6 +108,8 @@ export default Vue.extend({
           edges: this.edges as Layout.Edge[]
         })
       );
+
+      this.addEvents();
     },
     initData() {
       this.nodes = initialData.nodes.map((node) =>
@@ -143,42 +146,120 @@ export default Vue.extend({
             strokeWidth: 2
           }
         },
-        labels: [
+        labels: [this.edgeLabelMarkUp(edge.label)]
+      };
+    },
+    edgeLabelMarkUp(value: string) {
+      return {
+        markup: [
           {
-            markup: [
-              {
-                tagName: "rect",
-                selector: "body"
-              },
-              {
-                tagName: "text",
-                selector: "label"
-              }
-            ],
-            attrs: {
-              label: {
-                cursor: "pointer",
-                text: edge.label,
-                textAnchor: "middle",
-                textVerticalAnchor: "middle",
-                fontSize: 14,
-                fill: "#8d939b"
-              },
-              body: {
-                cursor: "pointer",
-                ref: "label",
-                refX: "-20%",
-                refY: "-20%",
-                refWidth: "140%",
-                refHeight: "140%",
-                fill: "#d3d3d3",
-                stroke: "#a2b1c3",
-                strokeWidth: 1
-              }
+            tagName: "rect",
+            selector: "body"
+          },
+          {
+            tagName: "text",
+            selector: "label"
+          }
+        ],
+        attrs: {
+          label: {
+            cursor: "pointer",
+            text: value,
+            textAnchor: "middle",
+            textVerticalAnchor: "middle",
+            fontSize: 14,
+            fill: "#5f95ff"
+          },
+          body: {
+            cursor: "pointer",
+            fill: "#d3d3d3",
+            stroke: "#a2b1c3",
+            strokeWidth: 1
+          }
+        }
+      };
+    },
+    addEvents() {
+      // 鼠标移入节点显示
+      this.g.on("node:mouseenter", ({ e, node, view }) => {
+        node.addTools({
+          name: "button-remove",
+          args: {
+            x: "100%",
+            y: 0,
+            offset: { x: -5, y: 5 }
+          }
+        });
+      });
+      // 鼠标移出节点显示
+      this.g.on("node:mouseleave", ({ node }) => {
+        node.removeTool("button-remove");
+      });
+      // 双击节点修改label
+      this.g.on("node:dblclick", ({ node, e }) => {
+        node.removeTool("node-editor");
+        node.addTools({
+          name: "node-editor",
+          args: {
+            event: e,
+            setText: (args: any) => {
+              CellEditor.NodeEditor.getDefaults().setText(args);
             }
           }
-        ]
-      };
+        });
+      });
+      // 双击edge修改label
+      this.g.on("edge:dblclick", ({ edge, e }) => {
+        // 只作用到label上
+        if (e.target.nodeName === "path") {
+          return;
+        }
+
+        // 修正连续点击多个edge导致定位计算bug
+        this.g.getEdges().forEach((edge) => {
+          edge.removeTool("edge-editor");
+        });
+        edge.addTools({
+          name: "edge-editor",
+          args: {
+            event: e,
+            setText: ({
+              cell,
+              value,
+              index
+            }: {
+              cell: Edge;
+              value: string;
+              index?: number;
+            }) => {
+              if (index === -1) {
+                // // 添加判断label数目，只允许输入一个label
+                // if (edge.labels.length >= 1) {
+                //   // 修改
+                //   cell.prop(`labels/0/attrs/label/text`, value);
+                // } else {
+                //   // 新增
+                cell.appendLabel({
+                  position: {
+                    distance: 0.5
+                  },
+                  ...this.edgeLabelMarkUp(value)
+                });
+                // }
+              } else {
+                if (value) {
+                  cell.prop(`labels/${index}/attrs/label/text`, value);
+                } else if (typeof index === "number") {
+                  cell.removeLabelAt(index);
+                }
+              }
+            }
+            // setText: (args: any) => {
+            //   CellEditor.EdgeEditor.getDefaults().setText(args);
+            // }
+          }
+        });
+      });
     }
   },
   beforeDestroy() {
