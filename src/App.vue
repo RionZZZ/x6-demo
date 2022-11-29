@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div id="x6" ref="x6"></div>
+    <div class="mini-map" ref="miniMap"></div>
     <el-dropdown ref="menuDown" trigger="click" placement="bottom">
       <div></div>
       <el-dropdown-menu class="x6-down-menu" slot="dropdown">
@@ -39,6 +40,7 @@ export default Vue.extend({
   methods: {
     draw() {
       const x6 = this.$refs.x6 as HTMLElement;
+      const miniMap = this.$refs.miniMap as HTMLElement;
 
       this.g = new Graph({
         container: x6,
@@ -97,7 +99,7 @@ export default Vue.extend({
           nodeMovable: (cellView) => {
             return !!cellView.cell.getData()?.disableMove;
           }
-        }
+        },
         // interacting: (cellView) => {
         //   if (cellView.cell.getData()?.disableMove) {
         //     return { nodeMovable: false };
@@ -116,6 +118,13 @@ export default Vue.extend({
         //     }
         //   }
         // }
+        // 小地图
+        minimap: {
+          enabled: true,
+          container: miniMap,
+          height: 150,
+          width: 250
+        }
       });
 
       const dagreLayout = new DagreLayout({
@@ -372,11 +381,23 @@ body {
   display: flex;
   padding: 20px 36px;
   box-sizing: border-box;
+  position: relative;
   #x6 {
     flex: 1;
     .select-chosen {
       border: 2px dashed #696c14;
       background-color: #feb663;
+    }
+  }
+  .mini-map {
+    position: absolute;
+    bottom: 20px;
+    right: 36px;
+    .x6-widget-minimap {
+      background-color: #d8e7cc;
+      .x6-graph {
+        box-shadow: 0 0 4px 0 #7ca190;
+      }
     }
   }
 }
