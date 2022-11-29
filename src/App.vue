@@ -30,7 +30,7 @@ export default Vue.extend({
       g: {} as Graph,
       nodes: [] as Node.Metadata[],
       edges: [] as Edge.Metadata[],
-      dropdown: [] as DownMenu[]
+      dropdown: [] as DownMenu[],
     };
   },
   mounted() {
@@ -46,52 +46,52 @@ export default Vue.extend({
         autoResize: true,
         // 背景色
         background: {
-          color: "#dfdfdf"
+          color: "#dfdfdf",
         },
         // 网格
         grid: {
-          size: 5,
-          visible: true
+          size: 15,
+          visible: true,
         },
         // 画布拖拽
         panning: {
           enabled: true,
           eventTypes: ["leftMouseDown"],
-          modifiers: "ctrl"
+          modifiers: "ctrl",
         },
         // 滚轮缩放
         mousewheel: true,
         // 缩放临界值
         scaling: {
           max: 4,
-          min: 0.5
+          min: 0.5,
         },
         // 节点缩放
         resizing: {
           enabled: true,
-          restricted: true
+          restricted: true,
         },
         // 节点拖拽
         translating: {
-          restrict: -10
+          restrict: -10,
         },
         // 框选
         selecting: {
           enabled: true,
           rubberband: true,
           className: "select-chosen",
-          showNodeSelectionBox: true
+          showNodeSelectionBox: false,
         },
         // 连线
         connecting: {
           snap: {
-            radius: 30
+            radius: 30,
           },
           allowMulti: false,
           allowLoop: false,
           allowEdge: false,
-          highlight: true
-        }
+          highlight: true,
+        },
         // highlighting: {
         //   magnetAvailable: {
         //     name: "stroke",
@@ -110,7 +110,7 @@ export default Vue.extend({
         type: "dagre",
         rankdir: "LR",
         align: "DL",
-        controlPoints: true
+        controlPoints: true,
       });
 
       this.initData();
@@ -118,7 +118,7 @@ export default Vue.extend({
       this.g.fromJSON(
         dagreLayout.layout({
           nodes: this.nodes as Layout.Node[],
-          edges: this.edges as Layout.Edge[]
+          edges: this.edges as Layout.Edge[],
         })
       );
 
@@ -142,12 +142,12 @@ export default Vue.extend({
             stroke: "transparent",
             strokeWidth: 4,
             rx: 5,
-            ry: 5
+            ry: 5,
           },
           label: {
-            fill: "#ffffff"
-          }
-        }
+            fill: "#ffffff",
+          },
+        },
       };
     },
     formatEdge(source: string, target: string, edge: Edge.Metadata) {
@@ -157,10 +157,10 @@ export default Vue.extend({
         attrs: {
           line: {
             stroke: "#a2b1c3",
-            strokeWidth: 2
-          }
+            strokeWidth: 2,
+          },
         },
-        labels: [this.edgeLabelMarkUp(edge.label)]
+        labels: [this.edgeLabelMarkUp(edge.label)],
       };
     },
     edgeLabelMarkUp(value: string) {
@@ -168,12 +168,12 @@ export default Vue.extend({
         markup: [
           {
             tagName: "rect",
-            selector: "body"
+            selector: "body",
           },
           {
             tagName: "text",
-            selector: "label"
-          }
+            selector: "label",
+          },
         ],
         attrs: {
           label: {
@@ -182,15 +182,15 @@ export default Vue.extend({
             textAnchor: "middle",
             textVerticalAnchor: "middle",
             fontSize: 14,
-            fill: "#5f95ff"
+            fill: "#5f95ff",
           },
           body: {
             cursor: "pointer",
             fill: "#d3d3d3",
             stroke: "#a2b1c3",
-            strokeWidth: 1
-          }
-        }
+            strokeWidth: 1,
+          },
+        },
       };
     },
     addEvents() {
@@ -205,8 +205,8 @@ export default Vue.extend({
           args: {
             x: "100%",
             y: 0,
-            offset: { x: -5, y: 5 }
-          }
+            offset: { x: -5, y: 5 },
+          },
         });
         node.attr("body/stroke", "#9dd1aa");
       });
@@ -227,9 +227,9 @@ export default Vue.extend({
         edge.prop("labels/0", {
           attrs: {
             body: {
-              stroke: "#9dd1aa"
-            }
-          }
+              stroke: "#9dd1aa",
+            },
+          },
         });
       });
       // 鼠标移出edge
@@ -238,9 +238,9 @@ export default Vue.extend({
         edge.prop("labels/0", {
           attrs: {
             body: {
-              stroke: "#a2b1c3"
-            }
-          }
+              stroke: "#a2b1c3",
+            },
+          },
         });
       });
       // 双击节点修改label
@@ -255,8 +255,8 @@ export default Vue.extend({
                   setText: (args: any) => void;
                 }
               ).setText(args);
-            }
-          }
+            },
+          },
         });
       });
       // 双击edge修改label
@@ -277,7 +277,7 @@ export default Vue.extend({
             setText: ({
               cell,
               value,
-              index
+              index,
             }: {
               cell: Edge;
               value: string;
@@ -292,9 +292,9 @@ export default Vue.extend({
                 //   // 新增
                 cell.appendLabel({
                   position: {
-                    distance: 0.5
+                    distance: 0.5,
                   },
-                  ...this.edgeLabelMarkUp(value)
+                  ...this.edgeLabelMarkUp(value),
                 });
                 // }
               } else {
@@ -304,11 +304,11 @@ export default Vue.extend({
                   cell.removeLabelAt(index);
                 }
               }
-            }
+            },
             // setText: (args: any) => {
             //   CellEditor.EdgeEditor.getDefaults().setText(args);
             // }
-          }
+          },
         });
       });
       // 鼠标右键点击画布
@@ -332,18 +332,22 @@ export default Vue.extend({
     // },
     showMenu(x: number, y: number) {
       console.log(x, y);
+      console.log(this.g.scale());
+      console.log(this.g.translate());
+      const { tx, ty } = this.g.translate();
+      const { sx, sy } = this.g.scale();
       (this.$refs.menuDown as any).show();
       const menu = (this.$refs.menuDown as any).popperElm;
       setTimeout(() => {
         menu.setAttribute("x-placement", "bottom-start");
-        menu.style.left = x + 20 + "px";
-        menu.style.top = y + 36 + "px";
+        menu.style.left = x * sx + tx + 30 + "px";
+        menu.style.top = y * sy + ty + 20 + "px";
       }, 0);
-    }
+    },
   },
   beforeDestroy() {
     this.g.dispose();
-  }
+  },
 });
 </script>
 
@@ -357,6 +361,7 @@ body {
   display: flex;
   padding: 20px 36px;
   box-sizing: border-box;
+  position: relative;
   #x6 {
     flex: 1;
     .select-chosen {
