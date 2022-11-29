@@ -8,6 +8,9 @@ export const initialData = {
       shape: "rect",
       // class: "type-top",
       description: "这是顶级node"
+      // data: {
+      //   disableMove: true
+      // }
     },
     {
       id: "1",
