@@ -231,33 +231,34 @@ export default Vue.extend({
         });
         node.attr("body/stroke", "transparent");
       });
-      // 鼠标点击空白区域消除删除按钮
-      // this.g.on("blank:click", () => {
-      //   this.g.getNodes().forEach((node) => {
-      //     node.removeTool("button-remove");
-      //   });
-      // });
       // 鼠标移入edge
       this.g.on("edge:mouseenter", ({ edge }) => {
         edge.attr("line/stroke", "#9dd1aa");
-        edge.prop("labels/0", {
-          attrs: {
-            body: {
-              stroke: "#9dd1aa"
+        // 添加判断再塞值，避免修改label时出来length获取错误
+        if (edge.labels.length) {
+          edge.prop("labels/0", {
+            attrs: {
+              body: {
+                stroke: "#9dd1aa",
+                strokeWidth: 2
+              }
             }
-          }
-        });
+          });
+        }
       });
       // 鼠标移出edge
       this.g.on("edge:mouseleave", ({ edge }) => {
         edge.attr("line/stroke", "#a2b1c3");
-        edge.prop("labels/0", {
-          attrs: {
-            body: {
-              stroke: "#a2b1c3"
+        if (edge.labels.length) {
+          edge.prop("labels/0", {
+            attrs: {
+              body: {
+                stroke: "#a2b1c3",
+                strokeWidth: 1
+              }
             }
-          }
-        });
+          });
+        }
       });
       // 双击节点修改label
       this.g.on("node:dblclick", ({ node, e }) => {
@@ -278,7 +279,7 @@ export default Vue.extend({
       // 双击edge修改label
       this.g.on("edge:dblclick", ({ edge, e }) => {
         // 只作用到label上
-        if (e.target.nodeName === "path") {
+        if (edge.labels.length && e.target.nodeName === "path") {
           return;
         }
 
@@ -299,20 +300,17 @@ export default Vue.extend({
               value: string;
               index?: number;
             }) => {
+              console.log("----index----", index);
+
               if (index === -1) {
-                // // 添加判断label数目，只允许输入一个label
-                // if (edge.labels.length >= 1) {
-                //   // 修改
-                //   cell.prop(`labels/0/attrs/label/text`, value);
-                // } else {
-                //   // 新增
-                cell.appendLabel({
-                  position: {
-                    distance: 0.5
-                  },
-                  ...this.edgeLabelMarkUp(value)
-                });
-                // }
+                if (value) {
+                  cell.appendLabel({
+                    position: {
+                      distance: 0.5
+                    },
+                    ...this.edgeLabelMarkUp(value)
+                  });
+                }
               } else {
                 if (value) {
                   cell.prop(`labels/${index}/attrs/label/text`, value);
@@ -347,9 +345,6 @@ export default Vue.extend({
     //   this.showMenu();
     // },
     showMenu(x: number, y: number) {
-      console.log(x, y);
-      console.log(this.g.scale());
-      console.log(this.g.translate());
       const { tx, ty } = this.g.translate();
       const { sx, sy } = this.g.scale();
       (this.$refs.menuDown as any).show();
