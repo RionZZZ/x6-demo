@@ -7,10 +7,10 @@ export const initialData = {
       height: 32,
       shape: "rect",
       // class: "type-top",
-      description: "这是顶级node"
-      // data: {
-      //   disableMove: true
-      // }
+      description: "这是顶级node",
+      data: {
+        disableMove: true
+      }
     },
     {
       id: "1",

@@ -1,6 +1,7 @@
 <template>
   <div class="container">
-    <div id="x6" ref="x6"></div>
+    <div class="stencil" ref="stencil"></div>
+    <div class="x6" ref="x6"></div>
     <div class="mini-map" ref="miniMap"></div>
     <el-dropdown ref="menuDown" trigger="click" placement="bottom">
       <div></div>
@@ -10,8 +11,9 @@
           :key="index"
           :icon="item.icon"
           :command="item.command"
-          >{{ item.label }}</el-dropdown-item
         >
+          {{ item.label }}
+        </el-dropdown-item>
       </el-dropdown-menu>
     </el-dropdown>
   </div>
@@ -19,7 +21,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { Graph, Edge, Node, Cell } from "@antv/x6";
+import { Graph, Edge, Node, Addon, Shape } from "@antv/x6";
 import { CellEditor } from "@antv/x6/es/registry/tool/editor";
 import Layout, { DagreLayout } from "@antv/layout";
 import { initialData, downMenu, DownMenu } from "./constant";
@@ -52,14 +54,14 @@ export default Vue.extend({
         },
         // 网格
         grid: {
-          size: 15,
+          size: 5,
           visible: true
         },
         // 画布拖拽
         panning: {
-          enabled: true,
-          eventTypes: ["leftMouseDown"],
-          modifiers: "ctrl"
+          enabled: true
+          // eventTypes: ["leftMouseDown"],
+          // modifiers: "ctrl"
         },
         // 滚轮缩放
         mousewheel: true,
@@ -78,12 +80,12 @@ export default Vue.extend({
           restrict: -10
         },
         // 框选
-        selecting: {
-          enabled: true,
-          rubberband: true,
-          className: "select-chosen",
-          showNodeSelectionBox: false
-        },
+        // selecting: {
+        //   enabled: true,
+        //   rubberband: true,
+        //   className: "select-chosen",
+        //   showNodeSelectionBox: false
+        // },
         // 连线
         connecting: {
           snap: {
@@ -99,13 +101,15 @@ export default Vue.extend({
           nodeMovable: (cellView) => {
             return !!cellView.cell.getData()?.disableMove;
           }
+          // 等同于
+          // interacting: (cellView) => {
+          //   if (cellView.cell.getData()?.disableMove) {
+          //     return { nodeMovable: false };
+          //   }
+          //   return true;
+          // }
         },
-        // interacting: (cellView) => {
-        //   if (cellView.cell.getData()?.disableMove) {
-        //     return { nodeMovable: false };
-        //   }
-        //   return true;
-        // }
+
         // highlighting: {
         //   magnetAvailable: {
         //     name: "stroke",
@@ -144,6 +148,7 @@ export default Vue.extend({
       );
 
       this.addEvents();
+      this.setStencil();
     },
     initData() {
       this.nodes = initialData.nodes.map((node) =>
@@ -217,6 +222,7 @@ export default Vue.extend({
     addEvents() {
       // 鼠标移入node
       this.g.on("node:mouseenter", ({ node }) => {
+        console.log(node);
         this.g.getNodes().forEach((node) => {
           node.removeTool("button-remove");
           node.attr("body/stroke", "transparent");
@@ -363,6 +369,66 @@ export default Vue.extend({
         menu.style.left = x * sx + tx + 30 + "px";
         menu.style.top = y * sy + ty + 20 + "px";
       }, 0);
+    },
+    setStencil() {
+      const stencil = new Addon.Stencil({
+        title: "新建节点",
+        target: this.g,
+        search: (cell, key) => {
+          console.log(cell);
+
+          return (
+            cell.shape.indexOf(key) !== -1 ||
+            (cell.attr("text/text") as String).indexOf(key) !== -1
+          );
+        },
+        placeholder: "搜索节点",
+        notFoundText: "404",
+        stencilGraphWidth: 300,
+        stencilGraphHeight: 100,
+        groups: [
+          {
+            name: "node",
+            collapsable: false
+          }
+        ]
+      });
+      (this.$refs.stencil as HTMLElement).appendChild(stencil.container);
+
+      const r = new Shape.Rect({
+        width: 60,
+        height: 32,
+        label: "rect",
+        attrs: {
+          body: {
+            fill: "#5f95ff",
+            stroke: "transparent",
+            strokeWidth: 4,
+            rx: 5,
+            ry: 5
+          },
+          label: {
+            fill: "#ffffff"
+          }
+        }
+      });
+
+      const c = new Shape.Circle({
+        width: 60,
+        height: 60,
+        label: "circle",
+        attrs: {
+          body: {
+            fill: "#5f95ff",
+            stroke: "transparent",
+            strokeWidth: 4
+          },
+          label: {
+            fill: "#ffffff"
+          }
+        }
+      });
+      stencil.load([r, c], "node");
     }
   },
   beforeDestroy() {
@@ -382,8 +448,8 @@ body {
   padding: 20px 36px;
   box-sizing: border-box;
   position: relative;
-  #x6 {
-    flex: 1;
+  .x6 {
+    flex: 5;
     .select-chosen {
       border: 2px dashed #696c14;
       background-color: #feb663;
@@ -399,6 +465,12 @@ body {
         box-shadow: 0 0 4px 0 #7ca190;
       }
     }
+  }
+  .stencil {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    margin-right: 20px;
   }
 }
 .x6-down-menu {
