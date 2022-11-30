@@ -151,16 +151,13 @@ export default Vue.extend({
       this.setStencil();
     },
     initData() {
-      this.nodes = initialData.nodes.map((node) =>
-        this.formatNode(node.id, node)
-      );
+      this.nodes = initialData.nodes.map((node) => this.formatNode(node));
       this.edges = initialData.edges.map((edge) =>
         this.formatEdge(edge.source, edge.target, edge)
       );
     },
-    formatNode(id: string, node: Node.Metadata) {
+    formatNode(node: Node.Metadata) {
       return {
-        id,
         ...node,
         attrs: {
           body: {
@@ -175,6 +172,79 @@ export default Vue.extend({
           }
         }
       };
+    },
+    setNodePort(node: Node) {
+      const ports = {
+        groups: {
+          top: {
+            position: "top",
+            attrs: {
+              circle: {
+                r: 5,
+                magnet: true,
+                stroke: "#31d0c6",
+                strokeWidth: 2,
+                fill: "#fff"
+              }
+            }
+          },
+          left: {
+            position: "left",
+            attrs: {
+              circle: {
+                r: 5,
+                magnet: true,
+                stroke: "#31d0c6",
+                strokeWidth: 2,
+                fill: "#fff"
+              }
+            }
+          },
+          right: {
+            position: "right",
+            attrs: {
+              circle: {
+                r: 5,
+                magnet: true,
+                stroke: "#31d0c6",
+                strokeWidth: 2,
+                fill: "#fff"
+              }
+            }
+          },
+          bottom: {
+            position: "bottom",
+            attrs: {
+              circle: {
+                r: 5,
+                magnet: true,
+                stroke: "#31d0c6",
+                strokeWidth: 2,
+                fill: "#fff"
+              }
+            }
+          }
+        },
+        items: [
+          {
+            id: node.id + "port-top",
+            group: "top"
+          },
+          {
+            id: node.id + "port-bottom",
+            group: "bottom"
+          },
+          {
+            id: node.id + "port-left",
+            group: "left"
+          },
+          {
+            id: node.id + "port-right",
+            group: "right"
+          }
+        ]
+      };
+      node.prop("ports", ports);
     },
     formatEdge(source: string, target: string, edge: Edge.Metadata) {
       return {
@@ -315,8 +385,6 @@ export default Vue.extend({
               value: string;
               index?: number;
             }) => {
-              console.log("----index----", index);
-
               if (index === -1) {
                 if (value) {
                   cell.appendLabel({
@@ -343,6 +411,11 @@ export default Vue.extend({
       // 鼠标右键点击画布
       this.g.on("blank:contextmenu", ({ e, x, y }) => {
         this.showSvgMenu(x, y);
+      });
+      // 所有添加的节点加上链接桩
+      this.g.on("node:added", ({ node }) => {
+        node.setData({ disableMove: true });
+        this.setNodePort(node);
       });
     },
     showSvgMenu(x: number, y: number) {
@@ -375,8 +448,6 @@ export default Vue.extend({
         title: "新建节点",
         target: this.g,
         search: (cell, key) => {
-          console.log(cell);
-
           return (
             cell.shape.indexOf(key) !== -1 ||
             (cell.attr("text/text") as String).indexOf(key) !== -1
@@ -391,19 +462,40 @@ export default Vue.extend({
             name: "node",
             collapsable: false
           }
-        ]
+        ],
+        // getDragNode: (node) => {
+        //   return node.clone();
+        // },
+        getDropNode: (node) => {
+          const shape = node.shape;
+          const nodeInfo = { label: node.attrs!.text.text };
+          if (shape === "rect") {
+            Object.assign(nodeInfo, {
+              width: 60,
+              height: 32,
+              shape: "rect"
+            });
+          } else if (shape === "circle") {
+            Object.assign(nodeInfo, {
+              width: 60,
+              height: 60,
+              shape: "circle"
+            });
+          }
+
+          return this.g.createNode(this.formatNode(nodeInfo));
+        }
       });
       (this.$refs.stencil as HTMLElement).appendChild(stencil.container);
 
-      const r = new Shape.Rect({
-        width: 60,
-        height: 32,
+      const rect = new Shape.Rect({
+        width: 70,
+        height: 40,
         label: "rect",
         attrs: {
           body: {
             fill: "#5f95ff",
             stroke: "transparent",
-            strokeWidth: 4,
             rx: 5,
             ry: 5
           },
@@ -413,22 +505,21 @@ export default Vue.extend({
         }
       });
 
-      const c = new Shape.Circle({
-        width: 60,
-        height: 60,
+      const circle = new Shape.Circle({
+        width: 80,
+        height: 80,
         label: "circle",
         attrs: {
           body: {
             fill: "#5f95ff",
-            stroke: "transparent",
-            strokeWidth: 4
+            stroke: "transparent"
           },
           label: {
             fill: "#ffffff"
           }
         }
       });
-      stencil.load([r, c], "node");
+      stencil.load([rect, circle], "node");
     }
   },
   beforeDestroy() {
