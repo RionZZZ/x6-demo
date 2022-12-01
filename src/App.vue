@@ -91,6 +91,7 @@ export default Vue.extend({
           snap: {
             radius: 30
           },
+          allowBlank: false,
           allowMulti: false,
           allowLoop: false,
           allowEdge: false,
@@ -109,19 +110,19 @@ export default Vue.extend({
           //   return true;
           // }
         },
-
-        // highlighting: {
-        //   magnetAvailable: {
-        //     name: "stroke",
-        //     args: {
-        //       padding: 4,
-        //       attrs: {
-        //         "stroke-width": 2,
-        //         stroke: "red"
-        //       }
-        //     }
-        //   }
-        // }
+        // 对应connecting中highlight配置
+        highlighting: {
+          magnetAvailable: {
+            name: "stroke",
+            args: {
+              padding: 4,
+              attrs: {
+                "stroke-width": 2,
+                stroke: "#FE854F"
+              }
+            }
+          }
+        },
         // 小地图
         minimap: {
           enabled: true,
@@ -471,14 +472,14 @@ export default Vue.extend({
           const nodeInfo = { label: node.attrs!.text.text };
           if (shape === "rect") {
             Object.assign(nodeInfo, {
-              width: 60,
-              height: 32,
+              width: 80,
+              height: 48,
               shape: "rect"
             });
           } else if (shape === "circle") {
             Object.assign(nodeInfo, {
-              width: 60,
-              height: 60,
+              width: 80,
+              height: 80,
               shape: "circle"
             });
           }
